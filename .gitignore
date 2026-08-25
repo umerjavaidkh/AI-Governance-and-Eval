@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets — never commit a GITHUB_TOKEN / OPENAI_API_KEY (see SETUP.md)
+.env
+*.env
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.idea/
+.vscode/*.local.json
+
+# Local archives of this repo (the source zips it was extracted from)
+*.zip

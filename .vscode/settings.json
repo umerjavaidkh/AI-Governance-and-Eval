@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.analysis.extraPaths": ["${workspaceFolder}/scripts"],
+  "[python]": { "editor.formatOnSave": false, "editor.rulers": [100] },
+  "[yaml]": { "editor.tabSize": 2, "editor.insertSpaces": true },
+  "[json]": { "editor.tabSize": 2 },
+  "yaml.format.enable": true,
+  "files.exclude": { "**/__pycache__": true },
+  "files.associations": { "*.yaml": "yaml" },
+  "search.exclude": { "data/collection.json": true, ".venv": true }
+}

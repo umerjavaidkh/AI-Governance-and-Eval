@@ -1,0 +1,258 @@
+# =============================================================================
+#  AI Governance and Eval — Agent Configuration
+# =============================================================================
+# Edit this file to change what the auto-update agent collects and how it
+# categorizes results. No code changes needed.
+#
+# INTAKE IS HYBRID, and that is the whole design:
+#
+# Ordering inside a category: tier, then `rank:` from curated.yaml (lower is
+# more prominent, default 100), then stars. Rank is what puts the EU AI Act
+# above ISO/IEC 23894 when neither has a star count to sort on.
+#
+#   Tier 1  curated  — authoritative frameworks with no GitHub presence at all
+#                      (EU AI Act, NIST AI RMF, ISO/IEC 42001, OWASP, MITRE
+#                      ATLAS). Human-maintained in data/curated.yaml. A star
+#                      threshold can never discover these, and they are the
+#                      entries a compliance reader actually came for.
+#   Tier 2  verified — open-source tools a human has vetted and pinned in
+#                      data/curated.yaml with a `repo:`. The agent refreshes
+#                      their stars but never removes them.
+#   Tier 3  found    — auto-discovered from the GitHub Search API. Labelled 🔎
+#                      in the README as unverified until someone promotes them
+#                      into curated.yaml.
+#
+# Stars measure fame, not trustworthiness. Tier is what this list sorts on.
+# -----------------------------------------------------------------------------
+
+# Minimum stars for TIER 3 DISCOVERY ONLY. Curated entries ignore this.
+#
+# Deliberately low compared with a general "famous AI repos" list: the serious
+# governance tooling is small. Inspect (the UK AI Security Institute's own eval
+# framework) sits around 2.6k stars and garak around 9k. A 20k threshold would
+# return ChatGPT wrappers and exclude every tool an auditor would recognise.
+min_stars: 400
+
+# How many result pages (100 repos each) to pull per search topic.
+# GitHub's Search API caps each query at 1000 results (10 pages).
+pages_per_topic: 2
+
+# Cap on how many entries are listed per category in the README.
+max_per_category: 15
+
+# How many repos to show in "📈 Momentum" (biggest star gains since the last
+# run). Needs at least 2 runs of history to populate.
+trending_count: 8
+
+# Max entries from any single category in the Momentum table. Without this,
+# one hot category fills all ten rows and the section stops being useful.
+trending_per_category: 3
+
+# ---------------------------------------------------------------------------
+# Spotlights — a one-line "why this is the pick" hook for the #1 entry in each
+# category. Cached per entry in data/collection.json (field: "spotlight"),
+# only regenerated when a category gets a new leader, silently skipped if the
+# API key isn't set.
+#
+#   anthropic -> ANTHROPIC_API_KEY   (default model: claude-haiku-4-5-20251001)
+#   openai    -> OPENAI_API_KEY      (default model: gpt-4o-mini)
+# ---------------------------------------------------------------------------
+spotlights:
+  enabled: true
+  provider: "openai"
+  model: "gpt-4o-mini"
+
+# ---------------------------------------------------------------------------
+# Quality gate — applies to TIER 3 discovery only.
+# ---------------------------------------------------------------------------
+quality:
+  require_description: true # skip repos with no description
+  exclude_archived: true # skip archived / read-only repos
+  exclude_forks: true # skip forks
+  exclude_disabled: true # skip disabled repos
+  max_months_since_push: 18 # skip repos with no commits in this many months
+
+# Repos to permanently exclude by "owner/name".
+# Discovery on these topics drags in tutorials, prompt collections and course
+# repos that are not governance or evaluation tooling.
+blocklist:
+  - "f/prompts.chat"
+  - "tw93/Pake"
+
+# What to do with TIER 3 discoveries:
+#
+#   candidates — (default) list them in a collapsed "Candidates for review"
+#                section at the bottom, OUT of the main category tables.
+#   inline     — mix them into the category tables, marked 🔎.
+#
+# `candidates` is the honest default. GitHub topics are self-declared: the
+# `ai-safety` and `ai-governance` tags are applied by anyone shipping an agent
+# product, so a topic match is evidence that someone *claimed* relevance, not
+# that the project is trustworthy. Publishing unreviewed hits directly into a
+# list whose whole pitch is trustworthiness would undercut the pitch. Promotion
+# to the main list stays a human decision, made by moving the entry into
+# data/curated.yaml.
+discovery_mode: candidates
+
+# Minimum categorisation score for a TIER 3 discovery to be kept.
+# A maintainer-set topic is worth 3, a name/description keyword is worth 1, so
+# the default of 3 means "at least one explicit topic match". Keyword-only hits
+# are almost all noise on these search topics — GitHub's `ai-governance` and
+# `ai-safety` tags attract every agent startup on the platform.
+min_discovery_score: 3
+
+# Substrings in a repo name/description that disqualify it from discovery.
+# Cheaper and more durable than blocklisting star-farmed repos one at a time.
+reject_keywords:
+  - "awesome-chatgpt"
+  - "chatgpt clone"
+  - "free api"
+  - "jailbreak prompts collection"
+  - "interview questions"
+  - "paste-ready"
+  - "a source-grounded course"
+  - "roadmap to becoming"
+
+# ---------------------------------------------------------------------------
+# Search topics for TIER 3 discovery.
+# ---------------------------------------------------------------------------
+search_topics:
+  - ai-safety
+  - ai-governance
+  - responsible-ai
+  - ai-alignment
+  - llm-evaluation
+  - llm-eval
+  - model-evaluation
+  - benchmark
+  - red-teaming
+  - llm-security
+  - prompt-injection
+  - ai-security
+  - explainable-ai
+  - interpretability
+  - fairness
+  - model-monitoring
+  - observability
+  - guardrails
+  - llm-guardrails
+  - compliance
+
+# ---------------------------------------------------------------------------
+# Categories — a repo is SCORED against every category and assigned to the best
+# match, not the first one that happens to hit.
+#
+#   topic match   = 3 points   (a maintainer explicitly tagged it)
+#   keyword match = 1 point    (heuristic on name + description)
+#
+# Ties break by the order below, so put more specific categories higher.
+#
+# The original first-match-wins approach mis-sorted big repos in a way that was
+# visible on the front page: huggingface/transformers carries the topic
+# `speech-recognition`, so a Speech category listed above LLMs captured it and
+# stopped looking. Scoring fixes that class of error without hand-tuning.
+# ---------------------------------------------------------------------------
+categories:
+  - name: "⚖️ Law, Regulation & Policy"
+    slug: regulation
+    blurb: "Binding obligations and national frameworks. Deadlines here drive budget."
+    topics: [ai-act, ai-policy, ai-regulation, ai-governance, compliance]
+    keywords: ["ai act", regulation, "policy tracker", legislation, compliance, gdpr]
+
+  - name: "🧭 Risk Management & Standards"
+    slug: risk
+    blurb: "Voluntary frameworks and certifiable standards — the backbone of most AI governance programmes."
+    topics: [risk-management, iso, nist, standards, responsible-ai, ai-ethics]
+    keywords: ["risk management", "management system", iso, nist, "impact assessment", "responsible ai"]
+
+  - name: "🛡️ AI Security & Threat Models"
+    slug: security
+    blurb: "Attack taxonomies, control catalogues, and defences for AI-specific threats."
+    topics: [ai-security, llm-security, prompt-injection, adversarial-attacks, threat-modeling]
+    keywords: ["prompt injection", owasp, atlas, "threat model", "attack taxonomy", adversarial]
+
+  - name: "🚨 Frontier Safety & Alignment"
+    slug: frontier
+    blurb: "Capability thresholds, pre-deployment commitments, and alignment research infrastructure."
+    topics: [ai-alignment, ai-safety, frontier-ai, dangerous-capabilities]
+    keywords: ["frontier model", "responsible scaling", alignment, "safety framework", "dangerous capabilit"]
+
+  - name: "🧪 Evaluation Harnesses"
+    slug: harness
+    blurb: "Run benchmarks and safety evals reproducibly, across models."
+    topics: [llm-evaluation, model-evaluation, benchmark, benchmarking, eval, evals]
+    keywords: ["eval harness", "evaluation harness", benchmark, "lm-eval", helm, inspect, opencompass]
+
+  - name: "🔬 Application & RAG Evaluation"
+    slug: appeval
+    blurb: "Evaluate your own product, not the base model."
+    topics: [rag-evaluation, llmops, observability, tracing, experiment-tracking]
+    keywords: [ragas, deepeval, promptfoo, langfuse, "rag evaluation", tracing, observability, "llm-as-judge"]
+
+  - name: "🐙 Red Teaming & Adversarial Testing"
+    slug: redteam
+    blurb: "Automated probes, jailbreak suites, and attack libraries you point at your own endpoint."
+    topics: [red-teaming, redteaming, jailbreak, fuzzing, penetration-testing]
+    keywords: ["red team", "red-team", jailbreak, garak, pyrit, "adversarial testing", "vulnerability scanner"]
+
+  - name: "🚧 Guardrails & Runtime Controls"
+    slug: guardrails
+    blurb: "Input/output filtering, policy enforcement, and PII controls at inference time."
+    topics: [guardrails, llm-guardrails, content-moderation, pii, safety-filters]
+    keywords: [guardrail, moderation, "content filter", "pii detection", "output validation", nemo-guardrails]
+
+  - name: "🔍 Interpretability & Explainability"
+    slug: interp
+    blurb: "Understanding why a model produced an output — for debugging and for defensible decisions."
+    topics: [interpretability, explainable-ai, xai, mechanistic-interpretability, feature-attribution]
+    keywords: [interpretab, explainab, shap, lime, "attribution", "sparse autoencoder", "activation"]
+
+  - name: "⚖️ Fairness, Bias & Privacy"
+    slug: fairness
+    blurb: "Measuring and mitigating disparate impact, and protecting the data behind the model."
+    topics: [fairness, bias, bias-detection, differential-privacy, privacy]
+    keywords: [fairness, "bias detection", "bias mitigation", "differential privacy", disparate, anonymi]
+
+  - name: "📊 Benchmarks & Leaderboards"
+    slug: benchmark
+    blurb: "Comparative capability signals. Directional, not decisive."
+    topics: [leaderboard, arena, dataset, benchmarks]
+    keywords: [leaderboard, arena, "swe-bench", "benchmark suite", elo]
+
+  - name: "📄 Transparency, Documentation & Incidents"
+    slug: transparency
+    blurb: "Model cards, transparency indices, provenance, and incident evidence bases."
+    topics: [model-cards, documentation, provenance, watermarking, transparency]
+    keywords: ["model card", datasheet, transparency, provenance, watermark, "incident database", c2pa]
+
+# Anything that matches no category above lands here.
+fallback_category:
+  name: "✨ Other Governance & Eval Tooling"
+  slug: other
+  blurb: "High-signal projects that don't fit neatly into the categories above."
+
+# ---------------------------------------------------------------------------
+# Compliance deadline countdown — rendered at the top of the README with days
+# remaining, recomputed on every run. This is the section that gives someone a
+# reason to come back: a static list is read once, a countdown is checked.
+#
+# Passed dates stay in the list (marked ✅) for one year so the page still
+# answers "what already applies to me?" — then delete them by hand.
+# ---------------------------------------------------------------------------
+deadlines:
+  - date: "2026-08-02"
+    label: "Article 50 transparency duties + AI Office enforcement over GPAI"
+    scope: "EU AI Act"
+    url: "https://artificialintelligenceact.eu/implementation-timeline/"
+  - date: "2027-08-02"
+    label: "GPAI models placed on the market before Aug 2025 must be compliant"
+    scope: "EU AI Act"
+    url: "https://artificialintelligenceact.eu/implementation-timeline/"
+  - date: "2027-12-02"
+    label: "High-risk obligations for stand-alone systems (Annex III)"
+    scope: "Digital Omnibus (EU) 2026/1744"
+    url: "https://artificialintelligenceact.eu/implementation-timeline/"
+  - date: "2028-08-02"
+    label: "High-risk AI embedded in regulated products (Annex I)"
+    scope: "Digital Omnibus (EU) 2026/1744"
+    url: "https://artificialintelligenceact.eu/implementation-timeline/"
