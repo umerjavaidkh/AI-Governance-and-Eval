@@ -83,18 +83,18 @@ def _hero(total: int, tiers: dict, cats: int, stamp: str, now: datetime) -> list
         "",
         "# 🏛️ AI Governance and Eval",
         "",
-        "**The frameworks regulators, auditors and frontier labs actually use.**",
+        "**Open-source repos for evaluating AI and for governing it. Nothing else.**",
         "",
-        "Standards, safety policies, eval harnesses and red-team tooling in one place —",
-        "each with a plain answer to *what is this* and *when would I reach for it*.",
+        "Two domains: harnesses and suites that measure LLMs, agents and RAG pipelines,",
+        "and the platforms that run an AI governance programme. Every entry is a repo you",
+        "can clone — no papers, no articles, no regulations.",
         "",
         f"![Entries](https://img.shields.io/badge/entries-{total}-1f6feb?style=flat-square) "
-        f"![Authoritative](https://img.shields.io/badge/authoritative-{tiers[1]}-8957e5?style=flat-square) "
-        f"![Verified tools](https://img.shields.io/badge/verified_tools-{tiers[2]}-2da44e?style=flat-square) "
+        f"![Verified](https://img.shields.io/badge/verified-{tiers[2]}-2da44e?style=flat-square) "
         f"![Updated](https://img.shields.io/badge/updated-{now:%Y--%m--%d}-0969da?style=flat-square) "
         "![License](https://img.shields.io/badge/license-MIT-6e7781?style=flat-square)",
         "",
-        f"`{total} entries` · `{cats} categories` · auto-updated every Monday · "
+        f"`{total} repos` · `{cats} domains` · auto-updated every Monday · "
         f"last run {stamp}",
         "",
         "</div>",
@@ -161,12 +161,10 @@ def _legend(tiers: dict, candidates_mode: bool) -> list[str]:
         "",
         "Stars measure fame, not trustworthiness. Every entry carries a provenance",
         "badge, and **the list sorts on that badge before anything else** — so a",
-        "60k-star wrapper can never outrank the EU AI Act.",
+        "60k-star wrapper can never outrank a repo a human actually vetted.",
         "",
         "| | Tier | What it means | Count |",
         "| :-: | :--- | :------------ | ----: |",
-        f"| 🏛️ | **Authoritative** | Published by a regulator, standards body or national "
-        f"institute. No repo, no stars, and the reason most people are here. | **{tiers[1]}** |",
         f"| ✅ | **Verified** | Open-source tooling a human vetted and pinned in "
         f"[`data/curated.yaml`](data/curated.yaml). | **{tiers[2]}** |",
     ]
@@ -187,14 +185,14 @@ def _legend(tiers: dict, candidates_mode: bool) -> list[str]:
 
 def _start_here(cat_meta: dict) -> list[str]:
     picks = [
-        ("🇪🇺", "Ship into the EU market", "regulation", "EU AI Act + Digital Omnibus"),
-        ("🧭", "Stand up governance from zero", "risk", "NIST AI RMF"),
-        ("📋", "Pass enterprise procurement", "risk", "ISO/IEC 42001"),
-        ("🛡️", "Threat-model a RAG or agent app", "security", "OWASP Top 10 for LLMs"),
-        ("📏", "Benchmark a base model credibly", "harness", "lm-evaluation-harness"),
-        ("🧪", "Run safety or agentic evals", "harness", "Inspect"),
-        ("🔬", "Test *your* product, not the model", "appeval", "Ragas / DeepEval"),
-        ("🐙", "Attack your own endpoint first", "redteam", "garak"),
+        ("📏", "Benchmark a base model credibly", "eval", "lm-evaluation-harness"),
+        ("🧪", "Run safety or agentic evals", "eval", "Inspect"),
+        ("🔬", "Evaluate a RAG pipeline", "eval", "Ragas / DeepEval"),
+        ("🐙", "Attack your own endpoint first", "eval", "garak / PyRIT"),
+        ("⚖️", "Measure and mitigate bias", "governance", "Fairlearn / AIF360"),
+        ("🔍", "Explain a model decision", "governance", "InterpretML / Captum"),
+        ("📡", "Catch drift in production", "governance", "Evidently / Alibi Detect"),
+        ("🔐", "Keep PII out of prompts and logs", "governance", "Presidio"),
     ]
     lines = [
         "## 🚦 Start here",
@@ -294,7 +292,7 @@ def _categories(non_empty: list[str], by_cat: dict, cat_meta: dict,
     lines: list[str] = []
     for slug in non_empty:
         meta, items = cat_meta[slug], by_cat[slug]
-        counts = [sum(1 for e in items if e["tier"] == t) for t in (1, 2)]
+        verified = sum(1 for e in items if e["tier"] == 2)
 
         lines.append(f'<a id="cat-{slug}"></a>')
         lines.append("")
@@ -304,8 +302,7 @@ def _categories(non_empty: list[str], by_cat: dict, cat_meta: dict,
             lines.append(f"> {meta['blurb']}")
             lines.append("")
         lines.append(
-            f"<sub>{len(items)} entries · {counts[0]} authoritative 🏛️ · "
-            f"{counts[1]} verified ✅</sub>"
+            f"<sub>{len(items)} repos · {verified} verified ✅</sub>"
         )
         lines.append("")
         lines.append("| Entry | What it is | Reach for it when |")
@@ -363,17 +360,17 @@ def _stats(non_empty: list[str], by_cat: dict, cat_meta: dict, tiers: dict, tota
     lines = [
         "## 📊 Coverage",
         "",
-        "| Section | | 🏛️ | ✅ | Total |",
-        "| :------ | :-- | -: | -: | ----: |",
+        "| Domain | | ✅ Verified | Total |",
+        "| :----- | :-- | -: | ----: |",
     ]
     for slug in non_empty:
         items = by_cat[slug]
-        counts = [sum(1 for e in items if e["tier"] == t) for t in (1, 2)]
+        verified = sum(1 for e in items if e["tier"] == 2)
         lines.append(
-            f"| {cat_meta[slug]['name']} | `{_bar(len(items), peak)}` | {counts[0]} "
-            f"| {counts[1]} | **{len(items)}** |"
+            f"| {cat_meta[slug]['name']} | `{_bar(len(items), peak)}` | {verified} "
+            f"| **{len(items)}** |"
         )
-    lines.append(f"| **Total** | | **{tiers[1]}** | **{tiers[2]}** | **{total}** |")
+    lines.append(f"| **Total** | | **{tiers[2]}** | **{total}** |")
     lines += ["", "---", ""]
     return lines
 
@@ -390,18 +387,18 @@ def _footer(config: dict) -> list[str]:
         "",
         "1. A scheduled [GitHub Action](.github/workflows/update-collection.yml) runs the "
         "agent every Monday at 06:00 UTC.",
-        "2. Authoritative frameworks and vetted tools are read from "
+        "2. Human-vetted repos are read from "
         "[`data/curated.yaml`](data/curated.yaml). **The agent never writes to that file** "
         "and never removes an entry from it.",
         "3. It then scans the GitHub Search API for the topics in "
         f"[`config.yaml`](config.yaml), keeping repos above **{config['min_stars']:,} stars** "
         "that pass the quality gate, and scores each into its best-fitting category.",
         "4. Discoveries land in [Candidates for review](#-candidates-for-review); they only "
-        "join the main list when a human promotes them. Deadlines are recalculated, the "
-        "README is regenerated, and changes are committed back.",
+        "join the main list when a human promotes them. The README is regenerated and "
+        "changes are committed back.",
         "",
         "**Tuning takes no code.** `config.yaml` controls the star threshold, search topics, "
-        "categories, quality gate, blocklist and deadlines. See [SETUP.md](SETUP.md).",
+        "domains, quality gate and blocklist. See [SETUP.md](SETUP.md).",
         "",
         "## 🙌 Contributing",
         "",
@@ -409,7 +406,7 @@ def _footer(config: dict) -> list[str]:
         "| :----------- | :------------- |",
         "| **Promote a 🔎 candidate to ✅** | The highest-value PR here. If you've used the "
         "tool for real, add it to `data/curated.yaml` with a `best_for` line. |",
-        "| **Fix a moved deadline or status** | Cite the primary source and it merges fast. |",
+        "| **Flag a dead or renamed repo** | A moved or archived repo is the fastest thing to fix. |",
         "| **Add a non-EU/US/UK/SG framework** | Coverage is thinnest outside those "
         "jurisdictions. |",
         "| **Report a mis-sorted entry** | The categoriser scores topics; a bad score is a "
@@ -455,7 +452,6 @@ def render_readme(store: dict, config: dict, new_ids: set[str], group_by_categor
 
     out: list[str] = []
     out += _hero(total, tiers, len(non_empty), now.strftime("%Y-%m-%d %H:%M UTC"), now)
-    out += _deadlines(config)
     out += _start_here(cat_meta)
     out += _legend(tiers, candidates_mode)
     out += _leaders(non_empty, by_cat, cat_meta)

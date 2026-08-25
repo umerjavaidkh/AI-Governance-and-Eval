@@ -79,9 +79,8 @@ Everything lives in [`config.yaml`](config.yaml):
 | -------- | ------- |
 | Change the discovery star threshold | edit `min_stars` |
 | Add a topic to scan | add to `search_topics` |
-| Add / rename a category | edit `categories` |
+| Add / rename a domain | edit `categories` |
 | Move a category leader to the top | set `rank:` on that entry in `data/curated.yaml` |
-| Add or edit a compliance deadline | edit `deadlines` |
 | Publish discoveries straight into the list | set `discovery_mode: inline` |
 | Loosen or tighten discovery precision | edit `min_discovery_score` |
 | Kick out a spam / novelty repo | add its `owner/name` to `blocklist` |
@@ -92,7 +91,19 @@ No Python changes are ever required for tuning.
 ## The one thing to maintain by hand
 
 [`data/curated.yaml`](data/curated.yaml) is the reason this list is worth
-reading. The agent never writes to it. Everything a regulator or auditor cares
-about — the EU AI Act, NIST AI RMF, ISO/IEC 42001, OWASP, MITRE ATLAS — has no
-GitHub repo and therefore no stars, so no amount of API scanning will discover
-it. Adding one good entry there is worth more than a hundred discovered repos.
+reading. The agent never writes to it.
+
+**This list is repos only, in two domains:**
+
+| Domain | What belongs here |
+| ------ | ----------------- |
+| `eval` | Repos you point at an LLM, an agent or a RAG pipeline to measure it — harnesses, benchmarks, RAG/app eval, tracing, red-teaming |
+| `governance` | Repos you run as part of a governance programme — fairness and bias testing, explainability, drift and production monitoring, PII handling, incident tracking, audit evidence |
+
+Every entry **must** carry `repo: owner/name`. Papers, articles, blog posts,
+regulations, standards and frameworks are out of scope by design — entries
+without a `repo:` are skipped by `scripts/update_collection.py` and never
+reach the README. If you cannot clone it, it does not belong here.
+
+Adding one genuinely used repo with a real `best_for` line is worth more than
+a hundred discovered ones.

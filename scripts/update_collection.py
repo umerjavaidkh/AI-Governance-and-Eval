@@ -196,11 +196,16 @@ def categorize(repo: dict, categories: list[dict], fallback: dict) -> tuple[str,
 # Intake
 # --------------------------------------------------------------------------- #
 def curated_entries(curated: dict, config: dict) -> dict[str, dict]:
-    """Tier 1 and 2 from data/curated.yaml, keyed by entry id."""
+    """Verified repos from data/curated.yaml, keyed by entry id."""
     cat_slugs = {c["slug"] for c in config["categories"]} | {config["fallback_category"]["slug"]}
     out: dict[str, dict] = {}
 
     for raw in curated.get("entries", []):
+        # Repos only, by design. A paper, article, regulation or framework has no
+        # repo and is rejected here rather than silently rendered as an entry.
+        if not raw.get("repo"):
+            log(f"  curated '{raw['id']}': no repo, skipped (this list is repos only)")
+            continue
         slug = raw.get("category")
         if slug not in cat_slugs:
             log(f"  curated '{raw['id']}': unknown category {slug!r}, using fallback")
@@ -214,13 +219,12 @@ def curated_entries(curated: dict, config: dict) -> dict[str, dict]:
             "description": raw["summary"],
             "best_for": raw.get("best_for", ""),
             "status": raw.get("status"),
-            "jurisdiction": raw.get("jurisdiction"),
             "license": raw.get("license"),
             "verified": raw.get("verified"),
             "rank": int(raw.get("rank", 100)),
             "full_name": raw.get("repo"),
             "category_slug": slug,
-            "tier": TIER_VERIFIED if raw.get("repo") else TIER_CURATED,
+            "tier": TIER_VERIFIED,
             "stars": None,
             "topics": [],
         }
